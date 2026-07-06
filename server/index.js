@@ -3,8 +3,10 @@ require("dotenv").config();
 
 const express = require("express");
 const chatRoutes = require("./routes/chatRoutes");
+const connectDB = require("./config/db");
 
 const app = express();
+connectDB();
 app.use(cors());
 
 const PORT = 5000;

@@ -1,4 +1,5 @@
 const { generateResponse } = require("../services/geminiService");
+const Message = require("../models/Message");
 
 const chatController = async (req, res) => {
   try {
@@ -10,8 +11,16 @@ const chatController = async (req, res) => {
         message: "Message is required",
       });
     }
-
+    await Message.create({
+      role: "user",
+      content: message,
+    });
     const reply = await generateResponse(message);
+
+    await Message.create({
+      role: "assistant",
+      content: reply,
+    });
 
     res.status(200).json({
       success: true,
@@ -19,13 +28,13 @@ const chatController = async (req, res) => {
     });
 
   } catch (error) {
-      console.error("Gemini Error:", error);
+    console.error("Gemini Error:", error);
 
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 module.exports = { chatController };

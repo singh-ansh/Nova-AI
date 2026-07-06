@@ -1,19 +1,34 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Paperclip, Mic, SendHorizontal } from "lucide-react";
 
-import Input from "../ui/Input";
+// import Input from "../ui/Input";
 import IconButton from "../ui/IconButton";
 
 
 function ChatInput({ onSend, isTyping }) {
-    const [message, setMessage] = useState("");
-    const handleSend = () => {
-        if (!message.trim()) return;
+  const [message, setMessage] = useState("");
+  const textareaRef = useRef(null);
+  useEffect(() => {
+    if (!textareaRef.current) return;
 
-        onSend(message);
+    textareaRef.current.style.height = "auto";
+    textareaRef.current.style.height =
+      textareaRef.current.scrollHeight + "px";
+  }, [message]);
+  const handleSend = () => {
+    if (!message.trim()) return;
 
-        setMessage("");
-    };
+    onSend(message);
+
+    setMessage("");
+
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
+    }, 0);
+  };
   return (
     <div className="border-t border-zinc-800 bg-black p-5">
 
@@ -25,26 +40,33 @@ function ChatInput({ onSend, isTyping }) {
             <Paperclip size={20} />
           </IconButton>
 
-          <Input
-            
+          <textarea
+            ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                    handleSend();
-                }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
             }}
             disabled={isTyping}
             placeholder="Message Nova AI..."
+            rows={1}
             className="
-                flex-1
-                border-none
-                bg-transparent
-                focus:border-none
-                shadow-none
+            flex-1
+            resize-none
+            bg-transparent
+            outline-none
+            text-white
+            placeholder:text-gray-400
+            py-3
+            max-h-48
+            overflow-y-auto
+            
             "
           />
-          
+
 
           <IconButton>
             <Mic size={20} />
@@ -64,6 +86,8 @@ function ChatInput({ onSend, isTyping }) {
             justify-center
             hover:bg-gray-200
             transition
+            disabled:opacity-50
+            disabled:cursor-not-allowed
             "
           >
             <SendHorizontal size={18} />

@@ -6,18 +6,7 @@ import ChatInput from "../components/chat/ChatInput";
 import ChatMessages from "../components/chat/ChatMessages";
 
 function Chat() {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "user",
-      text: "Hello Nova AI",
-    },
-    {
-      id: 2,
-      sender: "ai",
-      text: "Hello Babu Saheb 👋",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
 
   // AI typing state
   const [isTyping, setIsTyping] = useState(false);
@@ -43,13 +32,38 @@ function Chat() {
         }
       );
 
+      const fullReply = response.data.reply;
+
+      const aiMessageId = Date.now() + 1;
+
       const aiMessage = {
-        id: Date.now() + 1,
+        id: aiMessageId,
         sender: "ai",
-        text: response.data.reply,
+        text: "",
       };
 
       setMessages((prev) => [...prev, aiMessage]);
+      let index = 0;
+
+      const interval = setInterval(() => {
+        index+= 3;
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMessageId
+              ? {
+                ...msg,
+                text: fullReply.slice(0, index),
+              }
+              : msg
+          )
+        );
+
+        if (index >= fullReply.length) {
+          clearInterval(interval);
+          setIsTyping(false);
+        }
+      }, 10);
     } catch (error) {
       console.error(error);
 
@@ -61,7 +75,7 @@ function Chat() {
 
       setMessages((prev) => [...prev, aiMessage]);
     } finally {
-      setIsTyping(false);
+      // Streaming complete hone par hi isTyping false hoga
     }
   };
 
