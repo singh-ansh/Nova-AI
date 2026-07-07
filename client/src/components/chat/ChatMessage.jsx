@@ -1,14 +1,26 @@
-
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Copy, Check } from "lucide-react";
 
+import {
+  Copy,
+  Check,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
+} from "lucide-react";
 
-function ChatMessage({ sender, message }) {
+function ChatMessage({
+  sender,
+  message,
+  prompt,
+  onRegenerate,
+}) {
   const isUser = sender === "user";
+
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async (text) => {
@@ -27,14 +39,18 @@ function ChatMessage({ sender, message }) {
   };
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`flex ${isUser ? "justify-end" : "justify-start"
+        }`}
+    >
       <div
         className={`
-          max-w-[70%]
+          max-w-[80%]
           px-5
           py-3
           rounded-2xl
-          whitespace-pre-wrap
+          break-words
+
           ${isUser
             ? "bg-blue-600 text-white"
             : "bg-zinc-800 text-white"
@@ -44,52 +60,237 @@ function ChatMessage({ sender, message }) {
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            code({ inline, className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || "");
 
-              return !inline && match ? (
-                <div className="my-4 overflow-hidden rounded-xl border border-zinc-700">
+            // ===========================
+            // Headings
+            // ===========================
+            h1: ({ children }) => (
+              <h1 className="text-3xl font-bold mt-6 mb-4">
+                {children}
+              </h1>
+            ),
 
-                  {/* Header */}
-                  <div className="flex items-center justify-between bg-zinc-900 px-4 py-2 text-sm text-gray-300">
-                    <span>{match[1]}</span>
+            h2: ({ children }) => (
+              <h2 className="text-2xl font-semibold mt-5 mb-3">
+                {children}
+              </h2>
+            ),
 
-                    <button
-                      onClick={() =>
-                        copyToClipboard(String(children).replace(/\n$/, ""))
-                      }
-                      className="flex items-center gap-2 hover:text-white transition"
-                    >
-                      {copied ? (
-                        <>
-                          <Check size={16} />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={16} />
-                          Copy
-                        </>
-                      )}
-                    </button>
-                  </div>
+            h3: ({ children }) => (
+              <h3 className="text-xl font-semibold mt-4 mb-2">
+                {children}
+              </h3>
+            ),
 
-                  {/* Code */}
-                  <SyntaxHighlighter
-                    style={oneDark}
-                    language={match[1]}
-                    PreTag="div"
-                    customStyle={{
-                      margin: 0,
-                      borderRadius: 0,
-                    }}
-                    {...props}
+            h4: ({ children }) => (
+              <h4 className="text-lg font-semibold mt-3 mb-2">
+                {children}
+              </h4>
+            ),
+
+            // ===========================
+            // Paragraph
+            // ===========================
+            p: ({ children }) => (
+              <p className="leading-7 mb-3">
+                {children}
+              </p>
+            ),
+
+            // ===========================
+            // Lists
+            // ===========================
+            ul: ({ children }) => (
+              <ul className="list-disc ml-6 my-3">
+                {children}
+              </ul>
+            ),
+
+            ol: ({ children }) => (
+              <ol className="list-decimal ml-6 my-3">
+                {children}
+              </ol>
+            ),
+
+            li: ({ children }) => (
+              <li className="mb-1">
+                {children}
+              </li>
+            ),
+
+            // ===========================
+            // Links
+            // ===========================
+            a: ({ href, children }) => (
+              <a
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-400 underline"
+              >
+                {children}
+              </a>
+            ),
+
+            // ===========================
+            // Blockquote
+            // ===========================
+            blockquote: ({ children }) => (
+              <blockquote
+                className="
+                  border-l-4
+                  border-blue-500
+                  pl-4
+                  italic
+                  text-gray-300
+                  my-4
+                "
+              >
+                {children}
+              </blockquote>
+            ),
+
+            // ===========================
+            // Tables
+            // ===========================
+            table: ({ children }) => (
+              <div className="overflow-x-auto my-4">
+                <table className="border border-zinc-700 w-full">
+                  {children}
+                </table>
+              </div>
+            ),
+
+            th: ({ children }) => (
+              <th
+                className="
+                  border
+                  border-zinc-700
+                  bg-zinc-900
+                  px-4
+                  py-2
+                "
+              >
+                {children}
+              </th>
+            ),
+
+            td: ({ children }) => (
+              <td
+                className="
+                  border
+                  border-zinc-700
+                  px-4
+                  py-2
+                "
+              >
+                {children}
+              </td>
+            ),
+
+            // ===========================
+            // Code
+            // ===========================
+            code({
+              className,
+              children,
+              ...props
+            }) {
+
+              const match = /language-(\w+)/.exec(
+                className || ""
+              );
+
+              const isCodeBlock = !!match;
+
+              if (isCodeBlock) {
+
+                const code = String(children).replace(/\n$/, "");
+
+                return (
+                  <div
+                    className="
+                      my-4
+                      overflow-hidden
+                      rounded-xl
+                      border
+                      border-zinc-700
+                    "
                   >
-                    {String(children).replace(/\n$/, "")}
-                  </SyntaxHighlighter>
-                </div>
-              ) : (
-                <code className={className} {...props}>
+                    {/* Header */}
+                    <div
+                      className="
+                        flex
+                        items-center
+                        justify-between
+                        bg-zinc-900
+                        px-4
+                        py-2
+                        text-sm
+                      "
+                    >
+                      <span className="text-gray-400">
+                        {match[1]}
+                      </span>
+
+                      <button
+                        onClick={() =>
+                          copyToClipboard(code)
+                        }
+                        className="
+                          flex
+                          items-center
+                          gap-2
+                          text-gray-300
+                          hover:text-white
+                          transition
+                        "
+                      >
+                        {copied ? (
+                          <>
+                            <Check size={16} />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={16} />
+                            Copy
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Code */}
+                    <SyntaxHighlighter
+                      style={oneDark}
+                      language={match[1]}
+                      PreTag="div"
+                      customStyle={{
+                        margin: 0,
+                        borderRadius: 0,
+                        background: "#18181b",
+                      }}
+                      {...props}
+                    >
+                      {code}
+                    </SyntaxHighlighter>
+                  </div>
+                );
+              }
+
+              // Inline Code
+              return (
+                <code
+                  className="
+                    bg-zinc-700
+                    text-pink-400
+                    px-1.5
+                    py-0.5
+                    rounded
+                    text-sm
+                  "
+                  {...props}
+                >
                   {children}
                 </code>
               );
@@ -98,6 +299,47 @@ function ChatMessage({ sender, message }) {
         >
           {message}
         </ReactMarkdown>
+        {
+          !isUser && (
+            <div className="flex items-center gap-4 mt-4 text-gray-400">
+
+              <button
+                className="hover:text-white transition"
+                title="Like"
+              >
+                <ThumbsUp size={18} />
+              </button>
+
+              <button
+                className="hover:text-white transition"
+                title="Dislike"
+              >
+                <ThumbsDown size={18} />
+              </button>
+
+              <button
+                onClick={() => copyToClipboard(message)}
+                className="hover:text-white transition"
+                title="Copy Response"
+              >
+                {copied ? (
+                  <Check size={18} />
+                ) : (
+                  <Copy size={18} />
+                )}
+              </button>
+
+              <button
+                onClick={() => onRegenerate(prompt)}
+                className="hover:text-white transition"
+                title="Regenerate"
+              >
+                <RotateCcw size={18} />
+              </button>
+
+            </div>
+          )
+        }
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import ChatMessage from "./ChatMessage";
 
-function ChatMessages({ messages, isTyping }) {
+function ChatMessages({ messages, isTyping,onRegenerate, }) {
   const messagesEndRef = useRef(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -19,6 +19,8 @@ function ChatMessages({ messages, isTyping }) {
             key={msg.id}
             sender={msg.sender}
             message={msg.text}
+            prompt={msg.prompt}
+            onRegenerate={onRegenerate}
           />
         ))}
 
