@@ -1,15 +1,39 @@
 const Chat = require("../models/Chat");
 const Message = require("../models/Message");
 const fs = require("fs");
+
 const { extractPdfText } = require("../services/pdfService");
 
 const {
   generateResponse,
   generateTitle,
 } = require("../services/geminiService");
+
+// =====================================
+// Get Messages
+// =====================================
 const getMessagesByChatId = async (req, res) => {
   try {
     const { chatId } = req.params;
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Login required",
+      });
+    }
+
+    const chat = await Chat.findOne({
+      _id: chatId,
+      user: req.user._id,
+    });
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
 
     const messages = await Message.find({
       chatId,
@@ -17,41 +41,67 @@ const getMessagesByChatId = async (req, res) => {
       createdAt: 1,
     });
 
-    res.json({
+    return res.json({
       success: true,
       messages,
     });
 
   } catch (error) {
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
+// =====================================
+// Get Chats
+// =====================================
 const getChats = async (req, res) => {
   try {
-    const chats = await Chat.find().sort({
+
+    if (!req.user) {
+      return res.json({
+        success: true,
+        chats: [],
+      });
+    }
+
+    const chats = await Chat.find({
+      user: req.user._id,
+    }).sort({
       updatedAt: -1,
     });
 
-    res.json({
+    return res.json({
       success: true,
       chats,
     });
 
   } catch (error) {
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
+// =====================================
+// Chat Controller
+// =====================================
 const chatController = async (req, res) => {
   try {
-    const { message, chatId } = req.body;
+
+    const isLoggedIn = !!req.user;
+
+    const {
+      message,
+      chatId,
+    } = req.body;
 
     if (!message && !req.file) {
       return res.status(400).json({
@@ -63,47 +113,86 @@ const chatController = async (req, res) => {
     let currentChatId = chatId;
     let isNewChat = false;
 
-    // Create new chat
-    if (!currentChatId) {
+    // ==========================
+    // Create Chat (Only Logged In)
+    // ==========================
+    if (isLoggedIn && !currentChatId) {
+
       const newChat = await Chat.create({
         title: "New Chat",
+        user: req.user._id,
       });
 
       currentChatId = newChat._id;
       isNewChat = true;
+
     }
 
-    // Save user's original message
-    await Message.create({
-      chatId: currentChatId,
-      role: "user",
-      content: message || "",
-    });
+    // ==========================
+    // Save User Message
+    // ==========================
+    if (isLoggedIn) {
 
-    // Load previous history
-    const messages = await Message.find({
-      chatId: currentChatId,
-    }).sort({
-      createdAt: 1,
-    });
+      await Message.create({
+        chatId: currentChatId,
+        role: "user",
+        content: message || "",
+      });
 
-    let history = messages.map((msg) => ({
-      role: msg.role === "assistant" ? "model" : "user",
-      parts: [
+    }
+
+    // ==========================
+    // Build Conversation History
+    // ==========================
+    let history = [];
+
+    if (isLoggedIn) {
+
+      const previousMessages = await Message.find({
+        chatId: currentChatId,
+      }).sort({
+        createdAt: 1,
+      });
+
+      history = previousMessages.map((msg) => ({
+        role:
+          msg.role === "assistant"
+            ? "model"
+            : "user",
+
+        parts: [
+          {
+            text: msg.content,
+          },
+        ],
+      }));
+
+    } else {
+
+      history = [
         {
-          text: msg.content,
+          role: "user",
+          parts: [
+            {
+              text: message,
+            },
+          ],
         },
-      ],
-    }));
+      ];
 
-    // ============================
+    }
+
+    // ==========================
     // PDF Support
-    // ============================
+    // ==========================
     if (
       req.file &&
       req.file.mimetype === "application/pdf"
     ) {
-      const pdfText = await extractPdfText(req.file.path);
+
+      const pdfText = await extractPdfText(
+        req.file.path
+      );
 
       history.push({
         role: "user",
@@ -115,37 +204,61 @@ const chatController = async (req, res) => {
           },
         ],
       });
+
     }
 
-    // Gemini
+    // ==========================
+    // Generate AI Reply
+    // ==========================
     const reply = await generateResponse(
       history,
+
       req.file &&
         req.file.mimetype.startsWith("image/")
         ? req.file
         : null
     );
 
-    // Delete uploaded file
+    // ==========================
+    // Delete Uploaded File
+    // ==========================
     if (req.file) {
+
       try {
+
         fs.unlinkSync(req.file.path);
+
       } catch (err) {
+
         console.log("File delete failed");
+
       }
+
     }
 
-    // Save AI response
-    await Message.create({
-      chatId: currentChatId,
-      role: "assistant",
-      content: reply,
-    });
+    // ==========================
+    // Save AI Reply
+    // ==========================
+    if (isLoggedIn) {
 
-    // Generate title only once
-    if (isNewChat) {
+      await Message.create({
+        chatId: currentChatId,
+        role: "assistant",
+        content: reply,
+      });
+
+    }
+
+    // ==========================
+    // Generate Chat Title
+    // ==========================
+    if (isLoggedIn && isNewChat) {
+
       try {
-        const title = await generateTitle(message || "New Chat");
+
+        const title = await generateTitle(
+          message || "New Chat"
+        );
 
         await Chat.findByIdAndUpdate(
           currentChatId,
@@ -153,42 +266,72 @@ const chatController = async (req, res) => {
             title,
           }
         );
+
       } catch (err) {
+
         console.log(
           "Title generation failed:",
           err.message
         );
+
       }
+
     }
 
-    const chat = await Chat.findById(currentChatId);
+    let title = null;
+
+    if (isLoggedIn) {
+
+      const chat = await Chat.findById(
+        currentChatId
+      );
+
+      title = chat?.title || null;
+
+    }
 
     return res.status(200).json({
       success: true,
       reply,
       chatId: currentChatId,
-      title: chat.title,
+      title,
     });
 
   } catch (error) {
+
     console.error(error);
 
-    // Delete uploaded file even on error
     if (req.file) {
+
       try {
+
         fs.unlinkSync(req.file.path);
+
       } catch { }
+
     }
 
     return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
+// =====================================
+// Rename Chat
+// =====================================
 const renameChat = async (req, res) => {
   try {
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Login required",
+      });
+    }
+
     const { chatId } = req.params;
     const { title } = req.body;
 
@@ -199,8 +342,11 @@ const renameChat = async (req, res) => {
       });
     }
 
-    const chat = await Chat.findByIdAndUpdate(
-      chatId,
+    const chat = await Chat.findOneAndUpdate(
+      {
+        _id: chatId,
+        user: req.user._id,
+      },
       {
         title: title.trim(),
       },
@@ -209,21 +355,41 @@ const renameChat = async (req, res) => {
       }
     );
 
-    res.json({
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
+
+    return res.json({
       success: true,
       chat,
     });
 
   } catch (error) {
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
+// =====================================
+// Edit Message
+// =====================================
 const editMessage = async (req, res) => {
   try {
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Login required",
+      });
+    }
+
     const { messageId } = req.params;
     const { content } = req.body;
 
@@ -236,26 +402,63 @@ const editMessage = async (req, res) => {
       });
     }
 
+    const chat = await Chat.findOne({
+      _id: message.chatId,
+      user: req.user._id,
+    });
+
+    if (!chat) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
     message.content = content;
 
     await message.save();
 
-    res.json({
+    return res.json({
       success: true,
       message,
     });
 
   } catch (error) {
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
+// =====================================
+// Delete Chat
+// =====================================
 const deleteChat = async (req, res) => {
   try {
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Login required",
+      });
+    }
+
     const { chatId } = req.params;
+
+    const chat = await Chat.findOne({
+      _id: chatId,
+      user: req.user._id,
+    });
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
 
     await Chat.findByIdAndDelete(chatId);
 
@@ -263,14 +466,14 @@ const deleteChat = async (req, res) => {
       chatId,
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: "Chat deleted successfully",
     });
 
   } catch (error) {
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -278,11 +481,14 @@ const deleteChat = async (req, res) => {
   }
 };
 
+// =====================================
+// Exports
+// =====================================
 module.exports = {
   chatController,
   getChats,
   getMessagesByChatId,
-  deleteChat,
   renameChat,
   editMessage,
+  deleteChat,
 };

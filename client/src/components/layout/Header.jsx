@@ -1,7 +1,11 @@
 import { Settings } from "lucide-react";
+import { Link } from "react-router-dom";
 import Button from "../ui/Button";
+import { useAuth } from "../../context/AuthContext";
 
 function Header() {
+  const { user, logout } = useAuth();
+
   return (
     <header className="flex items-center justify-between border-b border-zinc-800 bg-black px-8 py-5">
 
@@ -17,7 +21,44 @@ function Header() {
           <Settings size={22} />
         </button>
 
-        <Button>Login</Button>
+        {user ? (
+          <div className="flex items-center gap-3">
+
+            <span className="text-white font-medium">
+              {user.name}
+            </span>
+
+            <Button
+              onClick={logout}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Logout
+            </Button>
+
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+
+            <Link to="/login">
+              <Button>
+                Login
+              </Button>
+            </Link>
+
+            <Link to="/register">
+              <Button
+                className="
+                bg-blue-600
+                hover:bg-blue-700
+                text-white
+                "
+              >
+                Register
+              </Button>
+            </Link>
+
+          </div>
+        )}
 
       </div>
 

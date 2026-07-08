@@ -1,27 +1,58 @@
 const express = require("express");
-const upload = require("../middleware/upload");
-const {
-    chatController,
-    getChats,
-    getMessagesByChatId,
-    deleteChat,
-    renameChat,
-    editMessage,
-} = require("../controllers/chatController");
 
+const upload = require("../middleware/upload");
+const authMiddleware = require("../middleware/authMiddleware");
+const authOptional = require("../middleware/OptionalAuth");
+
+const {
+  chatController,
+  getChats,
+  getMessagesByChatId,
+  deleteChat,
+  renameChat,
+  editMessage,
+} = require("../controllers/chatController");
+const optionalAuth = require("../middleware/OptionalAuth");
 
 const router = express.Router();
 
-router.patch("/:chatId", renameChat);
-router.delete("/:chatId", deleteChat);
-router.get("/", getChats);
-router.get("/:chatId", getMessagesByChatId);
-router.patch("/message/:messageId", editMessage);
-
+// Guest + Login
 router.post(
-    "/",
-    upload.single("file"),
-    chatController
+  "/",
+  optionalAuth,
+  upload.single("file"),
+  chatController
+);
+
+// Login Required
+router.get(
+  "/",
+  optionalAuth,
+  getChats
+);
+
+router.get(
+  "/:chatId",
+  authMiddleware,
+  getMessagesByChatId
+);
+
+router.patch(
+  "/:chatId",
+  authMiddleware,
+  renameChat
+);
+
+router.patch(
+  "/message/:messageId",
+  authMiddleware,
+  editMessage
+);
+
+router.delete(
+  "/:chatId",
+  authMiddleware,
+  deleteChat
 );
 
 module.exports = router;

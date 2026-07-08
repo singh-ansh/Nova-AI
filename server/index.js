@@ -4,6 +4,8 @@ require("dotenv").config();
 const express = require("express");
 const chatRoutes = require("./routes/chatRoutes");
 const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
+const authOptional = require("./middleware/OptionalAuth");
 
 const app = express();
 connectDB();
@@ -19,7 +21,14 @@ app.use("/uploads", express.static("uploads"));
 
 
 // Routes
-app.use("/api/chat", chatRoutes);
+// const authOptional = require("./middleware/OptionalAuth");
+
+app.use(
+  "/api/chat",
+  authOptional,
+  chatRoutes
+);
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Nova AI Backend is Running 🚀");
