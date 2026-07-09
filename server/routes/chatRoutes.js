@@ -2,7 +2,7 @@ const express = require("express");
 
 const upload = require("../middleware/upload");
 const authMiddleware = require("../middleware/authMiddleware");
-const authOptional = require("../middleware/OptionalAuth");
+const authOptional = require("../middleware/optionalAuth");
 
 const {
   chatController,
