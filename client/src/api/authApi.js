@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/auth",
+  baseURL: "https://nova-ai-5opr.onrender.com/api/auth",
 });
 
 export const registerUser = async (userData) => {
