@@ -5,7 +5,7 @@ const express = require("express");
 const chatRoutes = require("./routes/chatRoutes");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
-const authOptional = require("./middleware/OptionalAuth");
+const authOptional = require("./middleware/optionalAuth");
 
 const app = express();
 connectDB();
