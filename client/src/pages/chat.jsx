@@ -31,7 +31,7 @@ function Chat() {
   const fetchChats = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/chat",
+        "https://nova-ai-5opr.onrender.com/api/chat",
         {
           headers: getAuthHeaders(),
         }
@@ -48,7 +48,7 @@ function Chat() {
     try {
 
       await axios.patch(
-        `http://localhost:5000/api/chat/${id}`,
+        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
         { title },
         {
           headers: getAuthHeaders(),
@@ -66,7 +66,7 @@ function Chat() {
     try {
 
       const res = await axios.get(
-        `http://localhost:5000/api/chat/${id}`,
+        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
         {
           headers: getAuthHeaders(),
         }
@@ -117,7 +117,7 @@ function Chat() {
       }
 
       const response = await axios.post(
-        "http://localhost:5000/api/chat",
+        "https://nova-ai-5opr.onrender.com/api/chat",
         formData,
         {
           headers: {
@@ -231,7 +231,7 @@ function Chat() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/chat",
+        "https://nova-ai-5opr.onrender.com/api/chat",
         {
           message: prompt,
           chatId,
@@ -291,7 +291,7 @@ function Chat() {
     try {
 
       await axios.delete(
-        `http://localhost:5000/api/chat/${id}`,
+        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
         {
           headers: getAuthHeaders(),
         }
