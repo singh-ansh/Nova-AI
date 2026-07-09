@@ -12,7 +12,7 @@ const {
   renameChat,
   editMessage,
 } = require("../controllers/chatController");
-const optionalAuth = require("../middleware/OptionalAuth");
+const optionalAuth = require("../middleware/optionalAuth");
 
 const router = express.Router();
 
