@@ -210,6 +210,8 @@ const chatController = async (req, res) => {
     // ==========================
     // Generate AI Reply
     // ==========================
+
+    console.log("Uploaded File:", req.file);
     const reply = await generateResponse(
       history,
 
