@@ -14,6 +14,9 @@ async function generateResponse(history, file = null) {
   // Image Support
   if (file && file.mimetype.startsWith("image/")) {
 
+    console.log("File Path:", file.path);
+    console.log("File Exists:", fs.existsSync(file.path));
+
     const imageBytes = fs.readFileSync(file.path);
 
     contents = [
