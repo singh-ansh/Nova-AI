@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Sidebar from "../components/layout/Sidebar";
 import Header from "../components/layout/Header";
-import ChatInput from "../components/chat/ChatInput";
+import ChatInput from "../components/chat/chatInput";
 import ChatMessages from "../components/chat/ChatMessages";
 
 import { useAuth } from "../context/AuthContext";
