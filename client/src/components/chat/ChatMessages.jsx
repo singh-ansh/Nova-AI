@@ -11,8 +11,8 @@ function ChatMessages({ messages, isTyping,onRegenerate, }) {
 
 
   return (
-    <div className="flex-1 overflow-y-auto p-10">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="flex-1 overflow-y-auto px-3 py-4 sm:p-10">
+      <div className="mx-auto w-full max-w-5xl space-y-6">
 
         {messages.map((msg) => (
           <ChatMessage
