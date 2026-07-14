@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Sidebar from "../components/layout/Sidebar";
 import Header from "../components/layout/Header";
-import ChatInput from "../components/chat/chatInput";
+import ChatInput from "../components/chat/ChatInput";
 import ChatMessages from "../components/chat/ChatMessages";
 
 import { useAuth } from "../context/AuthContext";
@@ -31,7 +31,7 @@ function Chat() {
   const fetchChats = async () => {
     try {
       const res = await axios.get(
-        "https://nova-ai-5opr.onrender.com/api/chat",
+        "http://localhost:5000/api/chat",
         {
           headers: getAuthHeaders(),
         }
@@ -48,7 +48,7 @@ function Chat() {
     try {
 
       await axios.patch(
-        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
+        `http://localhost:5000/api/chat/${id}`,
         { title },
         {
           headers: getAuthHeaders(),
@@ -66,7 +66,7 @@ function Chat() {
     try {
 
       const res = await axios.get(
-        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
+        `http://localhost:5000/api/chat/${id}`,
         {
           headers: getAuthHeaders(),
         }
@@ -117,7 +117,7 @@ function Chat() {
       }
 
       const response = await axios.post(
-        "https://nova-ai-5opr.onrender.com/api/chat",
+        "http://localhost:5000/api/chat",
         formData,
         {
           headers: {
@@ -231,7 +231,7 @@ function Chat() {
 
     try {
       const response = await axios.post(
-        "https://nova-ai-5opr.onrender.com/api/chat",
+        "http://localhost:5000/api/chat",
         {
           message: prompt,
           chatId,
@@ -291,7 +291,7 @@ function Chat() {
     try {
 
       await axios.delete(
-        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
+        `http://localhost:5000/api/chat/${id}`,
         {
           headers: getAuthHeaders(),
         }
@@ -320,7 +320,7 @@ function Chat() {
   }, [user]);
 
   return (
-    <div className="flex h-screen bg-black text-white">
+    <div className="flex h-screen overflow-hidden bg-black text-white">
 
       {user && (
         <Sidebar
@@ -336,7 +336,7 @@ function Chat() {
         />
       )}
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
 
         <Header />
 
