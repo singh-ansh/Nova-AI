@@ -146,9 +146,9 @@ function ChatInput({ onSend, isTyping, stopGenerating, }) {
   };
 
   return (
-    <div className="border-t border-zinc-800 bg-black p-5">
+    <div className="border-t border-zinc-800 bg-black p-3 sm:p-5">
 
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto w-full max-w-5xl">
 
         {/* Selected File */}
         {selectedFile && (
@@ -180,7 +180,7 @@ function ChatInput({ onSend, isTyping, stopGenerating, }) {
         )}
 
         {/* Input Box */}
-        <div className="flex items-end gap-3 rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-2">
+        <div className="flex items-end gap-2 sm:gap-3 rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-2">
 
           {/* Hidden File Input */}
           <input
@@ -227,7 +227,7 @@ function ChatInput({ onSend, isTyping, stopGenerating, }) {
             text-white
             placeholder:text-gray-400
             py-3
-            max-h-48
+            max-h-36 sm:max-h-48
             overflow-y-auto
           "
           />
