@@ -29,7 +29,7 @@ function Sidebar({
 
 
   return (
-    <aside className="w-72 bg-zinc-950 border-r border-zinc-800 flex flex-col">
+    <aside className="hidden md:flex w-72 bg-zinc-950 border-r border-zinc-800 flex-col">
 
       {/* Top */}
       <div className="p-5">
@@ -163,7 +163,7 @@ function Sidebar({
                     "Delete this chat?"
                   )
                 ) {
-                  onDelete(chat._id);
+                  deleteChat(chat._id);
                 }
               }}
               className="
