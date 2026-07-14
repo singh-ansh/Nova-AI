@@ -45,7 +45,9 @@ function ChatMessage({
     >
       <div
         className={`
-          max-w-[80%]
+          w-fit
+          max-w-[95%]
+          sm:max-w-[80%]
           px-5
           py-3
           rounded-2xl
@@ -262,6 +264,7 @@ function ChatMessage({
 
                     {/* Code */}
                     <SyntaxHighlighter
+                      wrapLongLines={true}
                       style={oneDark}
                       language={match[1]}
                       PreTag="div"
@@ -269,6 +272,8 @@ function ChatMessage({
                         margin: 0,
                         borderRadius: 0,
                         background: "#18181b",
+                        overflowX: "auto",
+                        fontSize: "14px"
                       }}
                       {...props}
                     >
