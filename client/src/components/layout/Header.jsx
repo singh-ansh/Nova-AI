@@ -7,13 +7,13 @@ function Header() {
   const { user, logout } = useAuth();
 
   return (
-    <header className="flex items-center justify-between border-b border-zinc-800 bg-black px-8 py-5">
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 bg-black px-3 py-3 sm:px-8 sm:py-5">
 
       <div></div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4 w-full sm:w-auto">
 
-        <select className="rounded-xl bg-zinc-900 px-4 py-2 text-white border border-zinc-700 outline-none">
+        <select className="rounded-xl bg-zinc-900 px-3 py-2 text-sm sm:text-base text-white border border-zinc-700 outline-none">
           <option>Gemini 2.5 Flash</option>
         </select>
 
@@ -22,7 +22,7 @@ function Header() {
         </button>
 
         {user ? (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
 
             <span className="text-white font-medium">
               {user.name}
@@ -37,7 +37,7 @@ function Header() {
 
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
 
             <Link to="/login">
               <Button>
