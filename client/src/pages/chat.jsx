@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Sidebar from "../components/layout/Sidebar";
 import Header from "../components/layout/Header";
-import ChatInput from "../components/chat/chatInput";
+import ChatInput from "../components/chat/ChatInput";
 import ChatMessages from "../components/chat/ChatMessages";
 
 import { useAuth } from "../context/AuthContext";
@@ -31,7 +31,7 @@ function Chat() {
   const fetchChats = async () => {
     try {
       const res = await axios.get(
-        "https://nova-ai-5opr.onrender.com/api/chat",
+        "http://localhost:5000/api/chat",
         {
           headers: getAuthHeaders(),
         }
@@ -48,7 +48,7 @@ function Chat() {
     try {
 
       await axios.patch(
-        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
+        `http://localhost:5000/api/chat/${id}`,
         { title },
         {
           headers: getAuthHeaders(),
@@ -66,7 +66,7 @@ function Chat() {
     try {
 
       const res = await axios.get(
-        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
+        `http://localhost:5000/api/chat/${id}`,
         {
           headers: getAuthHeaders(),
         }
@@ -88,6 +88,8 @@ function Chat() {
   };
 
   const handleSendMessage = async (text, file) => {
+
+    // console.log("handleSendMessage called");
 
     if (!text.trim() && !file) return;
 
@@ -116,8 +118,10 @@ function Chat() {
         formData.append("file", file);
       }
 
+      // console.log("1. Before axios");
+
       const response = await axios.post(
-        "https://nova-ai-5opr.onrender.com/api/chat",
+        "http://localhost:5000/api/chat",
         formData,
         {
           headers: {
@@ -127,15 +131,37 @@ function Chat() {
         }
       );
 
+      // console.log("2. After axios");
+      // console.log(response);
+      // console.log(response.data);
+
+      let fullReply = response.data.reply;
+
+      // console.log("3. Reply:", fullReply);
+
       if (response.data.chatId) {
         setChatId(response.data.chatId);
       }
+
+      // baaki code waise hi rehne do...
+
+
 
       if (user) {
         fetchChats();
       }
 
-      const fullReply = response.data.reply;
+      // let fullReply = response.data.reply;
+
+      fullReply = fullReply
+        .replace(/```latex\s*/g, "$$")
+        .replace(/```/g, (match, offset, str) => {
+          // sirf latex block band hone par $$ karo
+          return str.slice(0, offset).includes("```latex")
+            ? "$$"
+            : "```";
+        })
+        .replace(/^Copy\s*$/gim, "");
 
       const aiMessageId = Date.now() + 1;
 
@@ -148,6 +174,8 @@ function Chat() {
           prompt: text,
         },
       ]);
+
+      // console.log("Stored reply:", fullReply);
 
       let index = 0;
 
@@ -179,8 +207,7 @@ function Chat() {
       }, 10);
 
     } catch (err) {
-
-      console.log(err);
+      console.error(err);
 
       setMessages((prev) => [
         ...prev,
@@ -192,8 +219,18 @@ function Chat() {
       ]);
 
       setIsTyping(false);
-
     }
+
+    // setMessages((prev) => [
+    //   ...prev,
+    //   {
+    //     id: Date.now(),
+    //     sender: "ai",
+    //     text: "Something went wrong.",
+    //   },
+    // ]);
+
+
   };
 
   // ===============================
@@ -231,7 +268,7 @@ function Chat() {
 
     try {
       const response = await axios.post(
-        "https://nova-ai-5opr.onrender.com/api/chat",
+        "http://localhost:5000/api/chat",
         {
           message: prompt,
           chatId,
@@ -240,8 +277,10 @@ function Chat() {
           headers: getAuthHeaders(),
         }
       );
+      // console.log("FULL RESPONSE:", response.data);
 
       const fullReply = response.data.reply;
+      // console.log("RAW REPLY:", fullReply);
 
       const aiMessageId = Date.now();
 
@@ -279,7 +318,9 @@ function Chat() {
       }, 10);
 
     } catch (err) {
-      console.log(err);
+      // console.log("ERROR:", err);
+      // console.log(err.response?.data);
+      console.error(err);
       setIsTyping(false);
     }
   };
@@ -291,7 +332,7 @@ function Chat() {
     try {
 
       await axios.delete(
-        `https://nova-ai-5opr.onrender.com/api/chat/${id}`,
+        `http://localhost:5000/api/chat/${id}`,
         {
           headers: getAuthHeaders(),
         }
@@ -305,7 +346,7 @@ function Chat() {
       fetchChats();
 
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
