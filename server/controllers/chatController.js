@@ -5,9 +5,9 @@ const fs = require("fs");
 const { extractPdfText } = require("../services/pdfService");
 
 const {
-  generateResponse,
+  generateAIResponse,
   generateTitle,
-} = require("../services/geminiService");
+} = require("../services/aiService");
 
 // =====================================
 // Get Messages
@@ -210,11 +210,9 @@ const chatController = async (req, res) => {
     // ==========================
     // Generate AI Reply
     // ==========================
-
     console.log("Uploaded File:", req.file);
-    const reply = await generateResponse(
+    const reply = await generateAIResponse(
       history,
-
       req.file &&
         req.file.mimetype.startsWith("image/")
         ? req.file
